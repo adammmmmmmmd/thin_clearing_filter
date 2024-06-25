@@ -1,10 +1,10 @@
 @echo off
 REM Путь к вашей виртуальной среде
 set VENV_PATH=C:\Calculations\env
-REM Активируйте виртуальную среду
+REM 
 call %VENV_PATH%\Scripts\activate
-REM Путь к вашему скрипту
-set SCRIPT_PATH=C:\Calculations\FilterCalculationApp.py
-REM Запуск скрипта
+REM 
+set SCRIPT_PATH=C:\Calculations\TONFILD.py
+REM 
 python %SCRIPT_PATH%
 pause

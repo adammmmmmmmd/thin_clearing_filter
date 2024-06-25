@@ -42,9 +42,9 @@ class FilterCalculationApp(QWidget):
                               f'(k=0,033 для ДЭГа, k=0,0086 для воды):')
         self.k_input = QLineEdit(self)
 
-        self.DN_label = QLabel(
-            'Наружный диаметр патрона (рекомендуется DN=0,093 м), м:')
-        self.DN_input = QLineEdit(self)
+        self.Dn_label = QLabel(
+            'Наружный диаметр патрона (рекомендуется Dn=0,098 м), м:')
+        self.Dn_input = QLineEdit(self)
 
         self.L_label = QLabel(
             'Длина патрона (рекомендуется L=1,1 м), м:')
@@ -64,14 +64,6 @@ class FilterCalculationApp(QWidget):
             'Допустимый перепад давления на фильтре, МПа:')
         self.DELTPD_input = QLineEdit(self)
 
-        # self.NZAD_label = QLabel(
-        #     'Количество фильтрующих патронов, шт:')
-        # self.NZAD_input = QLineEdit(self)
-
-        # self.DHZAD_label = QLabel(
-        #     'Диаметр штуцера входа (выхода) жидкости, м:')
-        # self.DHZAD_input = QLineEdit(self)
-
         input_layout = QVBoxLayout()
         input_layout.addWidget(self.Gmax_label)
         input_layout.addWidget(self.Gmax_input)
@@ -81,8 +73,8 @@ class FilterCalculationApp(QWidget):
         input_layout.addWidget(self.T_input)
         input_layout.addWidget(self.k_label)
         input_layout.addWidget(self.k_input)
-        input_layout.addWidget(self.DN_label)
-        input_layout.addWidget(self.DN_input)
+        input_layout.addWidget(self.Dn_label)
+        input_layout.addWidget(self.Dn_input)
         input_layout.addWidget(self.L_label)
         input_layout.addWidget(self.L_input)
         input_layout.addWidget(self.DELTP_label)
@@ -93,29 +85,11 @@ class FilterCalculationApp(QWidget):
         input_layout.addWidget(self.ROJ_input)
         input_layout.addWidget(self.DELTPD_label)
         input_layout.addWidget(self.DELTPD_input)
-        # input_layout.addWidget(self.NZAD_label)
-        # input_layout.addWidget(self.NZAD_input)
-        # input_layout.addWidget(self.DHZAD_label)
-        # input_layout.addWidget(self.DHZAD_input)
 
         self.input_group.setLayout(input_layout)
 
     def init_output_text(self):
         self.output_text = QTextEdit(self)
-
-    def patrons_recommended_number(n_p):
-        n_values = [1, 3, 7, 10, 15, 24, 44]
-        filter_diam_values = [0.15, 0.25, 0.35, 0.42, 0.5, 0.6, 0.8]
-        F_values = [0.32, 0.96, 2.24, 3.2, 4.8, 7.68, 14.08]
-
-        # Находим индекс для соответствующих значений
-        index = next((i for i, v in enumerate(n_values)
-                     if n_p < v), len(n_values) - 1)
-
-        n = n_values[index]
-        filter_diam = filter_diam_values[index]
-        F = F_values[index]
-        return (n, F, filter_diam)
 
     def calculate(self):
         # Получаем значения из полей ввода
@@ -123,14 +97,12 @@ class FilterCalculationApp(QWidget):
         P = float(self.P_input.text())
         T = float(self.T_input.text())
         k = float(self.k_input.text())
-        DN = float(self.DN_input.text())
+        Dn = float(self.Dn_input.text())
         L = float(self.L_input.text())
         DELTP = float(self.DELTP_input.text())
         MU = float(self.MU_input.text())
         ROJ = float(self.ROJ_input.text())
         DELTPD = float(self.DELTPD_input.text())
-        # NZAD = float(self.NZAD_input.text())
-        # DHZAD = float(self.DHZAD_input.text())
 
         # Расчет
         def patrons_number(Gmax, q_p):
@@ -138,97 +110,97 @@ class FilterCalculationApp(QWidget):
             return n_p
 
         def find_q(Gmax, n):
-            q = Gmax/n
+            q = Gmax / n
             return q
 
         def patrons_recommended_number(n_p):
             n_values = [1, 3, 7, 10, 15, 24, 44]
             filter_diam_values = [0.15, 0.25, 0.35, 0.42, 0.5, 0.6, 0.8]
             F_values = [0.32, 0.96, 2.24, 3.2, 4.8, 7.68, 14.08]
-            # Находим индекс для соответствующих значений
             index = next((i for i, v in enumerate(n_values)
                          if n_p < v), len(n_values) - 1)
             n = n_values[index]
             filter_diam = filter_diam_values[index]
             F = F_values[index]
-            return (n, F, filter_diam)
+            return n, F, filter_diam
 
         def find_nearest_value(d):
-            # Ряд возможных значений
             values = [0.025, 0.05, 0.08, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5]
             return min(values, key=lambda x: abs(x - d))
 
-        F = 3.14 * DN * L * 1e4
+        F = 3.14 * Dn * L * 1e4
         q_p = 0.06 * k * ((DELTP * F * ROJ) / MU)
         n_p = patrons_number(Gmax, q_p)
-        n, F, DN = patrons_recommended_number(n_p)
+        n, F, D = patrons_recommended_number(n_p)
         W_sh = 1.5
         q = find_q(Gmax, n)
-
+        print(n, F, D)
+        W_sh_d = 0
         while True:
+            print('вход в 1й цикл')
             while True:
+                print('вход во 2й цикл')
                 d_shtr = math.sqrt(Gmax / (3600 * ROJ * 0.785 * W_sh))
                 d_shtr = find_nearest_value(d_shtr)
-                if d_shtr <= 0.5 * DN:
+                print(f'd_shtr={d_shtr}, D={D}')
+                if d_shtr <= 0.5 * D:
                     break
                 else:
-                    n = patrons_number + 1
-                    n, F, DN = patrons_recommended_number(n)
+                    n_p += 1
+                    n, F, D = patrons_recommended_number(n_p)
                     q = find_q(Gmax, n)
-                W_sh = Gmax / (3600 * ROJ * 0.785 * d_shtr ** 2)
-            DELTPSHT = (1.5) * \
-                (W_sh ** 2 * ROJ) / (2 * 9.81 * 1e5)
+                W_sh_d = Gmax / (3600 * ROJ * 0.785 * d_shtr ** 2)
+
+            DELTPSHT = (1.5) * (W_sh_d ** 2 * ROJ) / (2 * 9.81 * 1e5)
             alpha = 1.1
             DELTP = 0.015
             DELTPF = alpha * (DELTP + DELTPSHT)
+            print(f'DELTPF = {DELTPF}, DELTPD = {DELTPD}')
             if DELTPF <= DELTPD:
                 break
-            else:
-                continue
 
         # Вывод результатов
         result = f"""
-                       Технологический расчет фильтра тонкой очистки
+            Технологический расчет фильтра тонкой очистки
 
-                              Данные для расчета
+            Данные для расчета
         
-                          Вид расчета - проектный
+            Вид расчета - проектный
 
-        Производительность по жидкости максимальная: {Gmax} кг/ч
-        Давление рабочее, избыточное: {P} МПа
-        Температура рабочая, {T} °С
-        Коэффициент пропорциональности: {k}
-        Наружный диаметр патрона, {DN} м
-        Длина патрона: {L} м
-        Гидравлическое сопротивление чистого патрона: {DELTP} МПа
-        Коэффициент динамической вязкости жидкости: {MU} Па*с
-        Плотность жидкости: {ROJ} кг/м3
-        Допустимый перепад давления на фильтре: {DELTPD} МПа
+            Производительность по жидкости максимальная: {Gmax} кг/ч
+            Давление рабочее, избыточное: {P} МПа
+            Температура рабочая: {T} °С
+            Коэффициент пропорциональности: {k}
+            Наружный диаметр патрона: {Dn} м
+            Длина патрона: {L} м
+            Гидравлическое сопротивление чистого патрона: {DELTP} МПа
+            Коэффициент динамической вязкости жидкости: {MU} Па*с
+            Плотность жидкости: {ROJ} кг/м3
+            Допустимый перепад давления на фильтре: {DELTPD} МПа
 
-        
-                                           Результаты расчета
+            Результаты расчета
 
-        Производительность одного фильтрующего патрона:
-        Расчетная: {q_p} кг/ч
-        Действительная: {q} кг/ч
-        Поверхность фильтрации патрона: {F} см^2
-        Количество фильтрующих патронов:
-        расчетное: {n_p} шт
-        действительное: {n} шт
-        Диаметр фильтра: {DN} м
-        Диаметр штуцера входа (выхода) жидкости: {d_shtr} м
-        Скорость жидкости в штуцере входа (выхода): {W_sh} м/с
-        Гидравлическое сопротивление в штуцерах входа (выхода) жидкости: {DELTPSHT} МПа
-        Действительное гидравлическое сопротивление чистого патрона: {DELTPD} МПа
-        Гидравлическое сопротивление чистого фильтра: {DELTPF} МПа
+            Производительность одного фильтрующего патрона:
+            Расчетная: {q_p} кг/ч
+            Действительная: {q} кг/ч
+            Поверхность фильтрации патрона: {F} м^2
+            Количество фильтрующих патронов:
+            расчетное: {n_p} шт
+            действительное: {n} шт
+            Диаметр фильтра: {D} м
+            Диаметр штуцера входа (выхода) жидкости: {d_shtr} м
+            Скорость жидкости в штуцере входа (выхода): {W_sh} м/с
+            Гидравлическое сопротивление в штуцерах входа (выхода) жидкости: {DELTPD} МПа
+            Действительное гидравлическое сопротивление чистого патрона: {DELTPD} МПа
+            Гидравлическое сопротивление чистого фильтра: {DELTPF} МПа
 
-                                                   Заключение 
-        На основании проведенного технологического расчета на заданные условия принят фильтр тонкой очистки диаметром {DN} м и количеством фильтрующих патронов {n} шт.
-        Гидравлическое сопротивление чистого фильтра {DELTPF} МПа.
-        Номинальная тонкость фильтрации 20 мкм данная конструкция обеспечивает максимальную производительность по жидкости {Gmax} кг/ч
+            Заключение 
+            На основании проведенного технологического расчета на заданные условия принят фильтр тонкой очистки диаметром {D} м и количеством фильтрующих патронов {n} шт.
+            Гидравлическое сопротивление чистого фильтра {DELTPF} МПа.
+            Номинальная тонкость фильтрации 20 мкм данная конструкция обеспечивает максимальную производительность по жидкости {Gmax} кг/ч
 
-        Действительная скорость жидкости в штуцере: {W_sh} м/с
-        Гидравлическое сопротивление штуцеров: {DELTPSHT} МПа
+            Действительная скорость жидкости в штуцере: {W_sh} м/с
+            Гидравлическое сопротивление штуцеров: {DELTPD} МПа
         """
 
         # Отображение результата в текстовом поле
